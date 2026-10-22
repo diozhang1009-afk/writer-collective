@@ -231,6 +231,9 @@
 
   /* flip book */
   .flip-wrap { max-width: 520px; margin: 24px auto 0; }
+  .flip-back { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 14px; font-size: 13px; font-family: inherit; padding: 7px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip-bg); color: var(--muted); cursor: pointer; transition: color .2s ease, border-color .2s ease, transform .15s ease; }
+  .flip-back:hover { color: var(--text); border-color: var(--muted); }
+  .flip-back:active { transform: scale(.96); }
   .flipbook { position: relative; width: 100%; aspect-ratio: 4 / 5; perspective: 2200px; }
   .bp-page {
     position: absolute; inset: 0;
@@ -334,7 +337,7 @@ const PERIODS = [
   { date: "2026/10/21", note: "本期六篇入档，从梦境边缘到脑内高潮。" },
   { date: "2026/10/14", note: "本期四篇入档 · 信念、一天、谎言生活、秋。" },
   { date: "2026/10/07", note: "本期四篇入档 · 中秋家宴与一季颜色。" },
-  { date: "2026/09/30", note: "创刊号 · 本期四篇入档。" }
+  { date: "2026/09/30", note: "创刊号 · 童年之水、故乡之月，与爱的牺牲。" }
 ];
 const dates = PERIODS.map(p => p.date);
 
@@ -586,6 +589,7 @@ function renderFlipView() {
   const container = document.getElementById('view-flip');
   container.innerHTML =
     '<div class="flip-wrap">' +
+      '<button class="flip-back" onclick="goHome()">← 返回首页</button>' +
       '<div class="flipbook" id="flipbook"></div>' +
       '<div class="flip-nav">' +
         '<button class="flip-btn" id="flip-prev" onclick="flipGo(-1)">← 上一页</button>' +
