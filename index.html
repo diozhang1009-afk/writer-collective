@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writr Collective</title>
+<style>
+  :root {
+    --maxw: 680px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --font-serif: "Iowan Old Style", "Baskerville", "Songti SC", "STSong", "SimSun", Georgia, serif;
+    --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+    --read-size: 16px;
+    --bg: #ffffff;
+    --text: #161616;
+    --muted: #8a8a8a;
+    --faint: #c0c0c0;
+    --line: #ececec;
+    --hover: #f6f6f6;
+    --accent: #161616;
+    --on-accent: #ffffff;
+    --brand: #C8452B;
+    --on-brand: #ffffff;
+    --tag-text: #555555;
+    --tag-border: #e0e0e0;
+    --chip-bg: #ffffff;
+    --header-bg: rgba(255,255,255,0.85);
+  }
+  [data-theme="dark"] {
+    --bg: #131414;
+    --text: #e8e6e1;
+    --muted: #9a968c;
+    --faint: #5c5a54;
+    --line: #26282a;
+    --hover: #1c1e1f;
+    --accent: #e8e6e1;
+    --on-accent: #131414;
+    --brand: #E0674A;
+    --on-brand: #131414;
+    --tag-text: #c9c4b8;
+    --tag-border: #3a3c3e;
+    --chip-bg: #131414;
+    --header-bg: rgba(19,20,20,0.85);
+  }
+  [data-theme="paper"] {
+    --bg: #faf7f0;
+    --text: #2b2823;
+    --muted: #8c877c;
+    --faint: #c8c1b2;
+    --line: #e8e1d2;
+    --hover: #f2eee5;
+    --accent: #2b2823;
+    --on-accent: #faf7f0;
+    --brand: #C8452B;
+    --on-brand: #faf7f0;
+    --tag-text: #6b6455;
+    --tag-border: #e1dac9;
+    --chip-bg: #faf7f0;
+    --header-bg: rgba(250,247,240,0.85);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.7;
+  }
+  body, header.site, main, footer.site {
+    transition: background-color .3s ease, color .3s ease, border-color .3s ease;
+  }
+  ::selection { background: color-mix(in srgb, var(--brand) 22%, transparent); }
+  [hidden] { display: none !important; }
+
+  /* grain overlay (dark only) */
+  .grain {
+    position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+  }
+  [data-theme="dark"] .grain { opacity: .05; }
+
+  /* reading progress */
+  .progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--brand); width: 0; z-index: 30; transition: width .15s ease; }
+
+  /* header */
+  header.site { position: sticky; top: 0; z-index: 20; background: var(--header-bg); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .site-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .tabs { display: flex; gap: 8px; }
+  .tab {
+    background: none; border: none; cursor: pointer; font-size: 14px; font-family: inherit;
+    color: var(--muted); padding: 6px 10px; position: relative; transition: color .2s ease, transform .15s ease;
+  }
+  .tab:hover { color: var(--text); }
+  .tab:active { transform: scale(.96); }
+  .tab.active { color: var(--text); }
+  .tab.active::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: 2px; height: 2px; background: var(--brand); border-radius: 1px; }
+
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 20px 48px; }
+  main > section { animation: fadeIn .35s ease; }
+
+  /* masthead */
+  .masthead { display: flex; gap: 40px; align-items: center; padding: 44px 0 20px; }
+  .masthead-copy { flex: 1 1 auto; min-width: 0; }
+  .masthead-kicker { margin: 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--text); }
+  .masthead-title { margin: 10px 0 8px; font-family: var(--font-serif); font-weight: 600; font-size: 42px; line-height: 1.1; letter-spacing: -.01em; }
+  .masthead-desc { margin: 0; color: var(--muted); font-size: 15px; }
+  .masthead-meta { margin-top: 14px; color: var(--faint); font-size: 13px; font-family: var(--font-mono); }
+  .masthead-visual { flex: 0 0 auto; width: 168px; align-self: center; background: none; border: none; padding: 0; cursor: pointer; opacity: .94; transition: transform .25s ease, opacity .25s ease; }
+  .masthead-visual img { width: 100%; display: block; }
+  [data-theme="dark"] .masthead-visual img { filter: invert(1); }
+  .masthead-visual:hover { opacity: 1; transform: translateY(-2px); }
+  .masthead-visual:active { transform: scale(.97); }
+  @media (max-width: 640px) {
+    .masthead { gap: 20px; }
+    .masthead-visual { width: 108px; }
+  }
+
+  /* section headings */
+  .page-title { margin: 26px 0 4px; font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+  .page-sub { margin: 0 0 18px; color: var(--faint); font-size: 13px; }
+
+  /* periods */
+  .period { border-top: 1px solid var(--line); }
+  .period:last-child { border-bottom: 1px solid var(--line); }
+  .period summary { list-style: none; cursor: pointer; padding: 16px 0; display: flex; align-items: center; gap: 12px; }
+  .period summary::-webkit-details-marker { display: none; }
+  .period-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .period-vol { font-family: var(--font-mono); font-size: 13px; color: var(--text); }
+  .period-date { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .period-count { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--hover); color: var(--muted); border: 1px solid var(--line); }
+  .period-date:hover { color: var(--text); }
+  .chevron { margin-left: auto; color: var(--faint); transition: transform .25s ease, color .25s ease; }
+  .period[open] .chevron { transform: rotate(90deg); color: var(--brand); }
+  .period-body { padding: 0 0 18px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .period-body { animation: rise .4s ease; }
+  }
+  .period-note { margin: 0 0 8px; font-family: var(--font-serif); font-style: italic; color: var(--muted); font-size: 14px; }
+  .period-empty { margin: 0; color: var(--faint); font-size: 13px; }
+
+  /* work cards */
+  .work-list { display: flex; flex-direction: column; }
+  .work-list { margin-left: 12px; border-left: 1px solid var(--line); padding-left: 16px; }
+  .catalog-list { display: flex; flex-direction: column; }
+  .catalog-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 0; border-bottom: 1px solid var(--line); cursor: pointer;
+    transition: transform .2s cubic-bezier(.2,0,0,1);
+  }
+  .catalog-item:last-child { border-bottom: none; }
+  .catalog-item:hover { transform: translateX(4px); }
+  .catalog-item:hover .work-title { color: var(--brand); }
+  .work-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; line-height: 1.4; transition: color .2s ease; }
+  .work-meta { color: var(--muted); font-size: 13px; margin-top: 7px; display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+  .meta-author { color: var(--text); font-weight: 400; }
+  .meta-date { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .meta-words { color: var(--faint); font-size: 12px; }
+  .meta-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); opacity: .8; flex: none; }
+  .right { flex: none; }
+
+  /* tags */
+  .tags { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--tag-border); color: var(--tag-text); white-space: nowrap; }
+  .tag.c { color: var(--c); border-color: color-mix(in srgb, var(--c) 42%, transparent); }
+
+  /* search + filters */
+  .search { margin-bottom: 16px; }
+  .search-input { width: 100%; padding: 10px 14px; font-size: 14px; font-family: inherit; color: var(--text); background: var(--chip-bg); border: 1px solid var(--line); border-radius: 8px; outline: none; transition: border-color .2s ease; }
+  .search-input:focus { border-color: var(--brand); }
+  .filters { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+  .filter-row { display: flex; align-items: flex-start; gap: 12px; }
+  .filter-label { flex: none; width: 32px; font-size: 12px; color: var(--faint); padding-top: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; font-family: inherit; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip-bg); color: var(--muted); cursor: pointer; transition: all .15s ease; }
+  .chip:hover { border-color: var(--muted); color: var(--text); }
+  .chip:active { transform: scale(.96); }
+  .chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .result-count { color: var(--faint); font-size: 12px; margin: 8px 0 4px; }
+
+  /* reading */
+  .reading { padding-top: 20px; }
+  .back { font-size: 13px; font-family: inherit; cursor: pointer; color: var(--muted); background: none; border: none; padding: 4px 0; transition: color .2s ease, transform .15s ease; }
+  .back:hover { color: var(--text); }
+  .back:active { transform: scale(.96); }
+  .reader-tools { display: flex; flex-wrap: wrap; gap: 10px 20px; padding: 14px 0; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .tool-group { display: flex; align-items: center; gap: 6px; }
+  .tool-group-label { font-size: 12px; color: var(--faint); margin-right: 2px; }
+  .tool-btn { font-size: 13px; font-family: inherit; cursor: pointer; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--chip-bg); color: var(--muted); transition: all .15s ease; }
+  .tool-btn:hover { color: var(--text); border-color: var(--muted); }
+  .tool-btn:active { transform: scale(.96); }
+  .tool-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .size-label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 20px; text-align: center; }
+  .reading-head { margin-bottom: 22px; }
+  .reading-head h1 { margin: 0 0 12px; font-family: var(--font-serif); font-weight: 600; font-size: 30px; line-height: 1.25; letter-spacing: -.01em; }
+  .byline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .dot { color: var(--faint); }
+  .reading-meta { color: var(--faint); font-size: 12px; font-family: var(--font-mono); }
+  article.reading .body { white-space: pre-line; font-size: var(--read-size); line-height: 2.05; color: var(--text); }
+  article.reading .body:not(.no-drop)::first-letter {
+    font-family: var(--font-serif);
+    float: left;
+    font-size: 3.15em;
+    line-height: .85;
+    padding: .06em .14em 0 0;
+    color: var(--text);
+  }
+  body.serif article.reading .body { font-family: var(--font-serif); }
+
+  /* prev / next */
+  .read-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .read-nav-side { flex: 1; min-width: 0; }
+  .read-nav-side.next { text-align: right; }
+  .read-nav-btn { display: inline-flex; flex-direction: column; gap: 3px; max-width: 100%; background: none; border: none; cursor: pointer; font-family: inherit; text-align: left; padding: 0; }
+  .read-nav-side.next .read-nav-btn { align-items: flex-end; text-align: right; }
+  .read-nav-arrow { color: var(--faint); font-size: 13px; }
+  .read-nav-label { color: var(--faint); font-size: 12px; }
+  .read-nav-title { color: var(--text); font-size: 15px; font-weight: 600; transition: color .2s ease; }
+  .read-nav-btn:hover .read-nav-title { color: var(--brand); }
+
+  /* footer */
+  footer.site { border-top: 1px solid var(--line); }
+  .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 44px 20px 56px; }
+  .footer-tagline { text-align: center; font-size: 20px; font-weight: 600; letter-spacing: -.01em; color: var(--text); }
+  .footer-fine { text-align: center; color: var(--faint); font-size: 12px; margin-top: 10px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .footer-tagline { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s ease; }
+    .footer-tagline.in { opacity: 1; transform: none; }
+  }
+
+  /* flip book */
+  .flip-wrap { max-width: 520px; margin: 24px auto 0; }
+  .flipbook { position: relative; width: 100%; aspect-ratio: 4 / 5; perspective: 2200px; }
+  .bp-page {
+    position: absolute; inset: 0;
+    background: var(--chip-bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04), 0 16px 40px rgba(0,0,0,.09);
+    transform-origin: left center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transition: transform .68s cubic-bezier(.35,.12,.16,1);
+    padding: 44px 46px 60px;
+    overflow: hidden;
+    font-size: 16px; line-height: 1.9; color: var(--text);
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .bp-page.flipped { transform: rotateY(-178deg); }
+  .bp-page::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 40px;
+    background: linear-gradient(90deg, rgba(0,0,0,.055), rgba(0,0,0,0));
+    pointer-events: none;
+  }
+  .bp-title { font-family: var(--font-serif); font-size: 22px; font-weight: 600; line-height: 1.35; margin: 0 0 6px; }
+  .bp-byline { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin: 0 0 22px; }
+  .bp-para { margin: 0 0 1em; line-height: 1.9; }
+  .bp-foot { position: absolute; left: 24px; right: 24px; bottom: 16px; display: flex; align-items: baseline; justify-content: flex-end; gap: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--faint); }
+  .bp-foot-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bp-page-num { flex: none; font-family: var(--font-mono); font-size: 11px; color: var(--faint); }
+
+  .flip-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 520px; margin: 22px auto 0; }
+  .flip-btn { font-size: 13px; font-family: inherit; padding: 7px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip-bg); color: var(--muted); cursor: pointer; transition: color .2s ease, border-color .2s ease, transform .15s ease; }
+  .flip-btn:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
+  .flip-btn:active:not(:disabled) { transform: scale(.96); }
+  .flip-btn:disabled { opacity: .35; cursor: default; }
+  .flip-indicator { font-family: var(--font-mono); font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .flip-hint { max-width: 520px; margin: 16px auto 0; text-align: center; color: var(--faint); font-size: 12px; }
+
+  /* motion */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .rise { animation: rise .55s cubic-bezier(.2,.7,.3,1) both; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001s !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="progress" id="progress" style="width: 0px;"></div>
+
+<header class="site">
+  <div class="site-inner">
+    <nav class="tabs">
+      <button class="tab active" id="tab-home" onclick="goHome()">首页</button>
+      <button class="tab" id="tab-catalog" onclick="goCatalog()">作品目录</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="view-home"><header class="masthead"><div class="masthead-copy"><p class="masthead-kicker rise" style="animation-delay:.02s">Archive · 2026</p><h1 class="masthead-title rise" style="animation-delay:.08s">Writr Collective</h1><p class="masthead-desc rise" style="animation-delay:.15s">一个写作小组的作品整理与收录</p><div class="masthead-meta rise" style="animation-delay:.2s">本期 2026/10/21 · 6 篇 · 6 位作者</div></div><button class="masthead-visual rise" style="animation-delay:.14s" onclick="goFlip()" title="翻页模式" aria-label="打开翻页模式"><img src="flip-icon.png" alt="翻页模式" style="width: 190px; height: 186.667px; transform: matrix(1, 0, 0, 1, -22, 0);"></button></header><h2 class="page-title rise" style="animation-delay:.26s">档期</h2><p class="page-sub rise" style="animation-delay:.3s">按日期归档的作品，点击展开查看</p><details class="period rise" style="animation-delay:0.34s" open=""><summary><span class="period-head"><span class="period-vol">Vol. 03</span><span class="period-date">2026/10/21</span><span class="period-count">6 篇</span></span><span class="chevron">▸</span></summary><div class="period-body"><p class="period-note">本期六篇入档，从梦境边缘到脑内高潮。</p><div class="work-list"><div class="catalog-item " onclick="openWork('全城睡着')"><div><div class="work-title">全城睡着</div><div class="work-meta"><span class="meta-author">施施</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">384 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#5B6ABF">志怪</span></div></div></div><div class="catalog-item " onclick="openWork('消失的一小时')"><div><div class="work-title">消失的一小时</div><div class="work-meta"><span class="meta-author">三绝青年</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">575 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#7A6FA8">意识流</span></div></div></div><div class="catalog-item " onclick="openWork('文艺病少女的痊愈，及再病')"><div><div class="work-title">文艺病少女的痊愈，及再病</div><div class="work-meta"><span class="meta-author">冰</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">1073 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#2F8F83">非虚构</span></div></div></div><div class="catalog-item " onclick="openWork('门开了')"><div><div class="work-title">门开了</div><div class="work-meta"><span class="meta-author">Konstine</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">340 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#4A78A8">都市</span><span class="tag c" style="--c:#5B6ABF">志怪</span></div></div></div><div class="catalog-item " onclick="openWork('脑内高潮')"><div><div class="work-title">脑内高潮</div><div class="work-meta"><span class="meta-author">D</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">356 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#C08A2D">荒诞</span><span class="tag c" style="--c:#D0802F">幽默</span></div></div></div><div class="catalog-item " onclick="openWork('替身游戏')"><div><div class="work-title">替身游戏</div><div class="work-meta"><span class="meta-author">心梓</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">76 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#6B7280">哲思</span><span class="tag c" style="--c:#B0567A">诗性</span></div></div></div></div></div></details><details class="period rise" style="animation-delay:0.41s"><summary><span class="period-head"><span class="period-vol">Vol. 02</span><span class="period-date">2026/10/14</span><span class="period-count">0 篇</span></span><span class="chevron">▸</span></summary><div class="period-body"><p class="period-note">本期作品整理中，敬请期待。</p><p class="period-empty">暂无作品 · 即将更新</p></div></details><details class="period rise" style="animation-delay:0.48s"><summary><span class="period-head"><span class="period-vol">Vol. 01</span><span class="period-date">2026/10/07</span><span class="period-count">0 篇</span></span><span class="chevron">▸</span></summary><div class="period-body"><p class="period-note">创刊号 · 作品补录中。</p><p class="period-empty">暂无作品 · 即将更新</p></div></details></section>
+  <section id="view-catalog" hidden="">
+    <h2 class="page-title">作品目录</h2>
+    <p class="page-sub">按作者、时间（档期）、风格类型筛选，或全文搜索。</p>
+    <div class="search">
+      <input id="search-input" class="search-input" type="search" placeholder="搜索标题、作者或正文…" oninput="onSearch(this.value)">
+    </div>
+    <div id="catalog-body"><div class="filters"><div class="filter-row"><span class="filter-label">作者</span><div class="chips"><button class="chip active" onclick="toggleAuthor('')">全部</button><button class="chip " onclick="toggleAuthor('施施')">施施</button><button class="chip " onclick="toggleAuthor('三绝青年')">三绝青年</button><button class="chip " onclick="toggleAuthor('冰')">冰</button><button class="chip " onclick="toggleAuthor('Konstine')">Konstine</button><button class="chip " onclick="toggleAuthor('D')">D</button><button class="chip " onclick="toggleAuthor('心梓')">心梓</button></div></div><div class="filter-row"><span class="filter-label">时间</span><div class="chips"><button class="chip active" onclick="toggleDate('')">全部</button><button class="chip " onclick="toggleDate('2026/10/21')">2026/10/21</button><button class="chip " onclick="toggleDate('2026/10/14')">2026/10/14</button><button class="chip " onclick="toggleDate('2026/10/07')">2026/10/07</button></div></div><div class="filter-row"><span class="filter-label">风格</span><div class="chips"><button class="chip" onclick="clearTags()">全部</button><button class="chip " onclick="toggleTag('志怪')">志怪</button><button class="chip " onclick="toggleTag('意识流')">意识流</button><button class="chip " onclick="toggleTag('非虚构')">非虚构</button><button class="chip " onclick="toggleTag('都市')">都市</button><button class="chip " onclick="toggleTag('荒诞')">荒诞</button><button class="chip " onclick="toggleTag('幽默')">幽默</button><button class="chip " onclick="toggleTag('哲思')">哲思</button><button class="chip " onclick="toggleTag('诗性')">诗性</button></div></div></div><div class="result-count">共 6 篇</div><div class="catalog-list"><div class="catalog-item rise" style="animation-delay:0.06s" onclick="openWork('全城睡着')"><div><div class="work-title">全城睡着</div><div class="work-meta"><span class="meta-author">施施</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">384 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#5B6ABF">志怪</span></div></div></div><div class="catalog-item rise" style="animation-delay:0.10s" onclick="openWork('消失的一小时')"><div><div class="work-title">消失的一小时</div><div class="work-meta"><span class="meta-author">三绝青年</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">575 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#7A6FA8">意识流</span></div></div></div><div class="catalog-item rise" style="animation-delay:0.13s" onclick="openWork('文艺病少女的痊愈，及再病')"><div><div class="work-title">文艺病少女的痊愈，及再病</div><div class="work-meta"><span class="meta-author">冰</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">1073 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#2F8F83">非虚构</span></div></div></div><div class="catalog-item rise" style="animation-delay:0.17s" onclick="openWork('门开了')"><div><div class="work-title">门开了</div><div class="work-meta"><span class="meta-author">Konstine</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">340 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#4A78A8">都市</span><span class="tag c" style="--c:#5B6ABF">志怪</span></div></div></div><div class="catalog-item rise" style="animation-delay:0.20s" onclick="openWork('脑内高潮')"><div><div class="work-title">脑内高潮</div><div class="work-meta"><span class="meta-author">D</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">356 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#C08A2D">荒诞</span><span class="tag c" style="--c:#D0802F">幽默</span></div></div></div><div class="catalog-item rise" style="animation-delay:0.24s" onclick="openWork('替身游戏')"><div><div class="work-title">替身游戏</div><div class="work-meta"><span class="meta-author">心梓</span><span class="meta-sep"></span><span class="meta-date">2026/10/21</span><span class="meta-sep"></span><span class="meta-words">76 字</span></div></div><div class="right"><div class="tags"><span class="tag c" style="--c:#6B7280">哲思</span><span class="tag c" style="--c:#B0567A">诗性</span></div></div></div></div></div>
+  </section>
+  <section id="view-reading" hidden=""><div class="reading"><button class="back" onclick="backFromReading()">← 返回</button><div class="reader-tools"><div class="tool-group"><span class="tool-group-label">字号</span><button class="tool-btn" onclick="changeSize(-1)">A−</button><span class="size-label">16</span><button class="tool-btn" onclick="changeSize(1)">A+</button></div><div class="tool-group"><span class="tool-group-label">字体</span><button class="tool-btn" data-serif="1" onclick="setSerif(true)">衬线</button><button class="tool-btn active" data-serif="0" onclick="setSerif(false)">无衬线</button></div><div class="tool-group"><span class="tool-group-label">主题</span><button class="tool-btn" data-theme-btn="light" onclick="setTheme('light')">亮</button><button class="tool-btn" data-theme-btn="paper" onclick="setTheme('paper')">纸</button><button class="tool-btn active" data-theme-btn="dark" onclick="setTheme('dark')">暗</button></div></div><div class="reading-head"><h1>全城睡着</h1><div class="byline"><span>施施</span><span class="dot">·</span><span>2026/10/21</span><div class="tags"><span class="tag c" style="--c:#5B6ABF">志怪</span></div></div><div class="reading-meta">384 字 · 约 1 分钟</div></div><article class="reading"><div class="body">有一天，我开车去山里，行到半山腰的时候，看到一块巨大的岩石，偶然有钟声伴着风飘来。我停车，找到路口，往上爬去。走近一看原来是个庵堂，门匾上从右往左写着冷水庵三个字。往里走去，发现整个庵堂由一块巨大的岩石构成，里面供奉着一座青花瓷的观音像，宝瓶里插着杨枝，细柔，疏淡，带着清润的水汽。环顾一圈，一个人也没有。往右拐进一个小室，发现上面的岩石在滴水，下面整整接满了一水池的水，上面飘着一个小水瓢，我正要舀水喝，"住手！"远处传来了一声呵斥。
+
+"我口渴想喝点水，行吗？"我看进来的是个长相清秀的小尼姑，我不禁问。
+
+"师傅说，这个水，外人不能喝。"
+
+"那这满满的一池水是用来干嘛的？"
+
+小尼姑边请我往外走，边讲起来这庵堂原在元代的时候就有了。因为庵里的水清新明净，所以香火旺盛，香客走的时候都会求一壶水带走。但是突然有一天，这青花瓷观音手上的杨枝怎么也插不活，瓶里的水一倒，都是黑的。</div></article><div class="read-nav"><div class="read-nav-side"></div><div class="read-nav-side next"><button class="read-nav-btn" onclick="openWork('消失的一小时')"><span class="read-nav-arrow">下一篇 →</span><span class="read-nav-label">三绝青年</span><span class="read-nav-title">消失的一小时</span></button></div></div></div></section>
+  <section id="view-flip" hidden=""><div class="flip-wrap"><div class="flipbook" id="flipbook"><div class="bp-page" style="z-index:15"><h2 class="bp-title">脑内高潮</h2><div class="bp-byline">D · 2026/10/21</div><p class="bp-para">我的脑子里养了一群小人。他们总在入夜后开会。</p><p class="bp-para">晚上刚吃完饭，我正晕着碳呢，他们就早早来了。</p><p class="bp-para">今天的议题是"如何让'我'高兴"。</p><p class="bp-para">一看到这个议题他们就哄堂大笑起来。趁我还晕着的功夫，其中一个小人不知从哪掏出一箱烟花，打开正方形带锯齿的塑料包装，随即就点燃引线。那引线像老式的活塞内燃机一样迸发着火星，压抑又狂暴的就开始向前……</p><p class="bp-para">轰隆隆！！！一瞬间，有什么东西在"我"的脑壳里炸了开来。</p><p class="bp-para">五花八门，五彩缤纷，五光十色。</p><p class="bp-para">爽得我一连哆嗦了一二三四五六七八下。</p><div class="bp-foot"><span class="bp-foot-title">脑内高潮</span><span class="bp-page-num">01</span></div></div><div class="bp-page" style="z-index:14"><p class="bp-para">妻子问我今天是怎么了，我说没事，我在想一个关于宇宙终极问题。她无语的白我一眼说：吃饱饭没事干可以去洗碗🙄</p><p class="bp-para">随着我起身，脑中的小人们也纷纷退下了。只有那焰火散去后淡淡的硫磺味还在我脑中萦绕。</p><p class="bp-para">脑内高潮，是一场中年夫妻激情散去后的，持续的流淌。妻子翻了个身，温柔的和我说。</p><p class="bp-para">晚安。</p><div class="bp-foot"><span class="bp-foot-title">脑内高潮</span><span class="bp-page-num">02</span></div></div><div class="bp-page" style="z-index:13"><h2 class="bp-title">全城睡着</h2><div class="bp-byline">施施 · 2026/10/21</div><p class="bp-para">有一天，我开车去山里，行到半山腰的时候，看到一块巨大的岩石，偶然有钟声伴着风飘来。我停车，找到路口，往上爬去。走近一看原来是个庵堂，门匾上从右往左写着冷水庵三个字。往里走去，发现整个庵堂由一块巨大的岩石构成，里面供奉着一座青花瓷的观音像，宝瓶里插着杨枝，细柔，疏淡，带着清润的水汽。环顾一圈，一个人也没有。往右拐进一个小室，发现上面的岩石在滴水，下面整整接满了一水池的水，上面飘着一个小水瓢，我正要舀水喝，"住手！"远处传来了一声呵斥。</p><p class="bp-para">"我口渴想喝点水，行吗？"我看进来的是个长相清秀的小尼姑，我不禁问。</p><p class="bp-para">"师傅说，这个水，外人不能喝。"</p><p class="bp-para">"那这满满的一池水是用来干嘛的？"</p><div class="bp-foot"><span class="bp-foot-title">全城睡着</span><span class="bp-page-num">03</span></div></div><div class="bp-page" style="z-index:12"><p class="bp-para">小尼姑边请我往外走，边讲起来这庵堂原在元代的时候就有了。因为庵里的水清新明净，所以香火旺盛，香客走的时候都会求一壶水带走。但是突然有一天，这青花瓷观音手上的杨枝怎么也插不活，瓶里的水一倒，都是黑的。</p><div class="bp-foot"><span class="bp-foot-title">全城睡着</span><span class="bp-page-num">04</span></div></div><div class="bp-page" style="z-index:11"><h2 class="bp-title">替身游戏</h2><div class="bp-byline">心梓 · 2026/10/21</div><p class="bp-para">从前</p><p class="bp-para">替身仅存在于虚构中</p><p class="bp-para">现在</p><p class="bp-para">周围充斥着无形替身</p><p class="bp-para">看他人</p><p class="bp-para">为他人刻画最适配的替身</p><p class="bp-para">望自己</p><p class="bp-para">为自己临摹最清醒的替身</p><p class="bp-para">未来</p><p class="bp-para">开始替身游戏吧</p><div class="bp-foot"><span class="bp-foot-title">替身游戏</span><span class="bp-page-num">05</span></div></div><div class="bp-page" style="z-index:10"><p class="bp-para">勇敢撕开一具具替身</p><p class="bp-para">看自己</p><p class="bp-para">如何</p><p class="bp-para">望他人</p><div class="bp-foot"><span class="bp-foot-title">替身游戏</span><span class="bp-page-num">06</span></div></div><div class="bp-page" style="z-index:9"><h2 class="bp-title">门开了</h2><div class="bp-byline">Konstine · 2026/10/21</div><p class="bp-para">冬日，一个周六的早晨。</p><p class="bp-para">微信铃声把我从睡梦中吵醒，扒拉到手机，按掉。几秒后，电话铃声响起。</p><p class="bp-para">"小K啊，有个活客户急着要……"</p><p class="bp-para">于是，只得从温暖的被窝里起来。打开门，一片白色迎接我。</p><p class="bp-para">多年未下雪的宁波，挑了个鄙人加班的好日子下了场大的。</p><p class="bp-para">积雪满地，天空还飘着丝丝小雪花。回屋换了身厚衣服，找出雪地靴，出门。</p><p class="bp-para">嚓嚓嚓，双脚轻吻着大地。</p><p class="bp-para">熟悉的铃声又响起，接起电话。</p><div class="bp-foot"><span class="bp-foot-title">门开了</span><span class="bp-page-num">07</span></div></div><div class="bp-page" style="z-index:8"><p class="bp-para">"小K来了吗？"领导的。</p><p class="bp-para">啪叽，拦腰斩断我的那声"来-了"，摔在了雪地上，爬起来后发现是踩到了邻居家的矮墙延伸部，刚好被雪遮挡了。</p><p class="bp-para">抬头瞥见邻居家的入户门，此时半开着，上面堆着些雪，而他们不在此地多年。</p><p class="bp-para">念头闪过后，我继续赶路。</p><p class="bp-para">晚上回来的时候，雪化了大半。下意识地看了下，邻居的那扇门关着。</p><p class="bp-para">就像南方的雪下了又很快化掉，什么也没有发生过似的。</p><div class="bp-foot"><span class="bp-foot-title">门开了</span><span class="bp-page-num">08</span></div></div><div class="bp-page" style="z-index:7"><h2 class="bp-title">消失的一小时</h2><div class="bp-byline">三绝青年 · 2026/10/21</div><p class="bp-para">在半梦半醒之间，我的手臂感到一些刺痛。像被麦芒刮过的感觉。该回去看看那片海了，绿油油的海浪一波一波。天空的残阳并不如血，反而是一种温和的金红。小村子里的杨柳随着微风轻轻摇晃，成片的白穗子，随着风一吹，散开淡淡的白色花粉，红砖红瓦伴着夕阳，连成一片嵌入这片玉米的海洋。我感到浑身舒畅，我的目光无法聚焦，这些记忆与现实交互，像是在剪辑视频加了滤镜，我在选择滤镜，这应该是落日熔金。</p><p class="bp-para">不对，这时候我应该不在此处，它并不是我记忆的模样，它太美了，美得有些梦幻。并且我也不可能俯瞰它的全貌。手臂又开始痛了，感觉有点冰凉，我应该睡了很久，手臂在被子外头。我想扯一下被子盖住它。但一阵无力感席卷而来，随之而来的是一股巨大的恐惧，我感到头顶悬着一把剑。它直指我的眉心。眉心之间仿佛有一个漩涡，它正要把我的五</p><div class="bp-foot"><span class="bp-foot-title">消失的一小时</span><span class="bp-page-num">09</span></div></div><div class="bp-page" style="z-index:6"><p class="bp-para">官都吞噬进去。我只能用眉头紧皱来锁定我的五官来抵抗这种力量。我感到脖颈的汗水打湿了枕头，原来我真的在睡觉。那一片黄昏绿海是我的梦，头顶的达摩克利斯之剑也是我的梦。该醒了，离开那片海，回归到现实。我的右手变成了麻木，我想动一动，但它仿佛绑缚着千斤沙袋。我的血管有一些鼓胀，更清晰了，它开始变得实在。我的听觉也回来了，吱呀一声，是开门的声音。冰凉的触觉是，针头在滴注药液。世界变得清晰。该死的，我醒了，我的记忆全回来了。原来我晕倒在厕所里，我的裤子应该没有拉上来……</p><div class="bp-foot"><span class="bp-foot-title">消失的一小时</span><span class="bp-page-num">10</span></div></div><div class="bp-page" style="z-index:5"><h2 class="bp-title">文艺病少女的痊愈，及再病</h2><div class="bp-byline">冰 · 2026/10/21</div><p class="bp-para">（取材自书店真实故事，时间人物均有部分虚构，请勿对号入座。）</p><p class="bp-para">大约两年前的夏天，我正在某家医疗与家居生活馆兼职。每天的工作，生活，这些总使人倦怠。</p><p class="bp-para">中午时分，我到书店开门，准备营业。远远的，我就看到一个柔弱的背影，在店门口伫立。她低头，似在端详什么，门口挂着的字纱，从一面翻到下一篇，像观赏秋天树叶的松鼠。</p><p class="bp-para">"你好？"我轻轻说。</p><p class="bp-para">她回头，微笑且友好。</p><p class="bp-para">她的眼里有光——她很兴奋，我察觉到。</p><div class="bp-foot"><span class="bp-foot-title">文艺病少女的痊愈，及再病</span><span class="bp-page-num">11</span></div></div><div class="bp-page" style="z-index:4"><p class="bp-para">"是的，我叫小叶，进来吧。"</p><p class="bp-para">小叶已经在书店门口待一会了，摸摸门口摆放的旧书，看看窗外挂着的手写诗，完全不觉得无聊。进书店以后，她更加开心了。她一下就冲到门口挂着的一幅字前认真看字，"喜欢书，喜欢诗歌"——她开心地说。</p><p class="bp-para">我们门口挂着的是一首首自创的诗。</p><p class="bp-para">"来到这里，简直像找到了一个秘密基地。"她边看边细细打量起书店内的书，一边这样说。</p><p class="bp-para">一瞬间，她抓起放在前台的一本书，我觉得她差点要跳了起来。</p><p class="bp-para">"这本书！我在豆瓣上看到过，网上写的诗！怎么你这里有实体的诗集！"</p><p class="bp-para">我顿时充满骄傲，告诉她可能只有到我们书店才能看到这么全的诗集呢！</p><div class="bp-foot"><span class="bp-foot-title">文艺病少女的痊愈，及再病</span><span class="bp-page-num">12</span></div></div><div class="bp-page" style="z-index:3"><p class="bp-para">——至于顾城的缘分，那只是另一个故事了。</p><p class="bp-para">"我好喜欢她写的诗！但是后来我在网上就看不到了。"</p><p class="bp-para">她的神情里有些失落，还有一点别的什么。</p><p class="bp-para">她说自己去马来西亚读书，学文学，从本科到研究生，一直到，一直到……转硕，本来想着继续读博士，但是家里出了点事情，她需要回国。一切断了经济，于是无奈，只得选择回国。</p><p class="bp-para">小叶又说了回国后的琐事，以及家里人的不支持，便不再开口了。</p><p class="bp-para">不知怎的，我想起了十几年前的我自己。我当年也是那样，那时也是那样的无畏，或者说，莽撞。</p><p class="bp-para">她点了杯喝的，又开始打量书店,我也开始忙自己手头的事情。</p><div class="bp-foot"><span class="bp-foot-title">文艺病少女的痊愈，及再病</span><span class="bp-page-num">13</span></div></div><div class="bp-page" style="z-index:2"><p class="bp-para">聊着聊着，又开始了一场关于"秘密基地"的探险。</p><p class="bp-para">陆续又有几个人来。</p><p class="bp-para">"小叶后来聊了什么啊？"我问起一位常客。</p><p class="bp-para">《尼采诗选》，给她看了看。</p><p class="bp-para">"这本好像我们店里也有啊，好像跟你不太一样，是本……黑色的，我记得。"</p><p class="bp-para">"有，在那里！"</p><p class="bp-para">一个闪动的灵魂，迅速地抽出了旁边书架的一本书给我，"刚才我看到过，记得。"</p><p class="bp-para">果然，这是一本精装版的《尼采诗选》，不过是白色的。</p><p class="bp-para">雪儿看了后说："这本书，周国平翻译的。"</p><p class="bp-para">我好像想到了什么。</p><div class="bp-foot"><span class="bp-foot-title">文艺病少女的痊愈，及再病</span><span class="bp-page-num">14</span></div></div><div class="bp-page" style="z-index:1"><p class="bp-para">小叶和雪儿后来聊了她的工作、生活。</p><p class="bp-para">她好像已经痊愈了。用现在流行的说法：她是一个从文艺病中痊愈、好好融入到社会里的"文艺女青年"。</p><p class="bp-para">在她离开后，我给她介绍了我们书店的读书会，劝她加入后，给她看了看群公告。</p><p class="bp-para">"世界纷杂，人人有病。"她念了一句，我一直喜欢自己写的这句。</p><p class="bp-para">昨天，我又遇到她。</p><p class="bp-para">"吴某姐，我已经在准备材料了，我要继续去读书了！"</p><p class="bp-para">无畏，或者说，莽撞。</p><p class="bp-para">看来有人又病了。</p><div class="bp-foot"><span class="bp-foot-title">文艺病少女的痊愈，及再病</span><span class="bp-page-num">15</span></div></div></div><div class="flip-nav"><button class="flip-btn" id="flip-prev" onclick="flipGo(-1)" disabled="">← 上一页</button><div class="flip-indicator" id="flip-indicator">1 / 15</div><button class="flip-btn" id="flip-next" onclick="flipGo(1)">下一页 →</button></div><p class="flip-hint">左右滑动、按 ← → 或点按钮翻页</p></div></section>
+</main>
+
+<footer class="site">
+  <div class="footer-inner">
+    <div class="footer-tagline in">Where words find their company.</div>
+    <div class="footer-fine">Writr Collective · 2026/10/21</div>
+  </div>
+</footer>
+
+<script src="works.js"></script>
+<script>
+let WORKS = window.WORKS || [];
+let authors = [];
+let allTags = [];
+
+const PERIODS = [
+  { date: "2026/10/21", note: "本期六篇入档，从梦境边缘到脑内高潮。" },
+  { date: "2026/10/14", note: "本期作品整理中，敬请期待。" },
+  { date: "2026/10/07", note: "创刊号 · 作品补录中。" }
+];
+const dates = PERIODS.map(p => p.date);
+
+const TAG_COLORS = {
+  '志怪': '#5B6ABF', '意识流': '#7A6FA8', '非虚构': '#2F8F83', '都市': '#4A78A8',
+  '荒诞': '#C08A2D', '幽默': '#D0802F', '哲思': '#6B7280', '诗性': '#B0567A'
+};
+
+const state = { view: 'home', returnTab: 'home', author: null, date: null, keywords: '', tags: new Set() };
+let readSize = 16;
+let flipIndex = 0;
+
+const $ = s => document.querySelector(s);
+
+function show(id) {
+  ['home', 'catalog', 'reading', 'flip'].forEach(v => { $('#view-' + v).hidden = (v !== id); });
+  window.scrollTo(0, 0);
+}
+
+function setTab(id) {
+  $('#tab-home').classList.toggle('active', id === 'home');
+  $('#tab-catalog').classList.toggle('active', id === 'catalog');
+}
+
+function goHome() {
+  state.view = 'home';
+  setTab('home');
+  show('home');
+}
+
+function goCatalog() {
+  state.view = 'catalog';
+  setTab('catalog');
+  show('catalog');
+  renderCatalog(true);
+}
+
+let flipOrder = [];
+let flipRendered = false;
+function goFlip() {
+  state.view = 'flip';
+  setTab('flip');
+  show('flip');
+  if (!flipRendered) { renderFlipView(); flipRendered = true; }
+}
+
+function tagChips(tags) {
+  return '<div class="tags">' + tags.map(t =>
+    '<span class="tag c" style="--c:' + (TAG_COLORS[t] || '#888') + '">' + t + '</span>').join('') + '</div>';
+}
+
+function cardHTML(w, cls, delay) {
+  const len = w.text.replace(/\s+/g, '').length;
+  const d = delay ? ' style="animation-delay:' + delay + '"' : '';
+  return '<div class="catalog-item ' + cls + '"' + d + ' onclick="openWork(\'' + w.title + '\')">' +
+    '<div>' +
+      '<div class="work-title">' + w.title + '</div>' +
+      '<div class="work-meta"><span class="meta-author">' + w.author + '</span><span class="meta-sep"></span><span class="meta-date">' + w.date + '</span><span class="meta-sep"></span><span class="meta-words">' + len + ' 字</span></div>' +
+    '</div>' +
+    '<div class="right">' + tagChips(w.tags) + '</div>' +
+  '</div>';
+}
+
+function renderHome() {
+  const worksByDate = d => WORKS.filter(w => w.date === d);
+
+  const periods = PERIODS.map((p, idx) => {
+    const works = worksByDate(p.date);
+    const isOpen = idx === 0;
+    const body = works.length
+      ? '<div class="period-body"><p class="period-note">' + p.note + '</p><div class="work-list">' +
+          works.map(w => cardHTML(w, '', '')).join('') + '</div></div>'
+      : '<div class="period-body"><p class="period-note">' + p.note + '</p><p class="period-empty">暂无作品 · 即将更新</p></div>';
+    const delay = (0.34 + idx * 0.07).toFixed(2) + 's';
+    return '<details class="period rise" style="animation-delay:' + delay + '"' + (isOpen ? ' open' : '') + '>' +
+      '<summary><span class="period-head">' +
+        '<span class="period-vol">Vol. 0' + (PERIODS.length - idx) + '</span>' +
+        '<span class="period-date">' + p.date + '</span>' +
+        '<span class="period-count">' + works.length + ' 篇</span>' +
+      '</span><span class="chevron">▸</span></summary>' + body + '</details>';
+  }).join('');
+
+  $('#view-home').innerHTML =
+    '<header class="masthead">' +
+      '<div class="masthead-copy">' +
+        '<p class="masthead-kicker rise" style="animation-delay:.02s">Archive · 2026</p>' +
+        '<h1 class="masthead-title rise" style="animation-delay:.08s">Writr Collective</h1>' +
+        '<p class="masthead-desc rise" style="animation-delay:.15s">一个写作小组的作品整理与收录</p>' +
+        '<div class="masthead-meta rise" style="animation-delay:.2s">本期 ' + dates[0] + ' · ' + WORKS.length + ' 篇 · ' + authors.length + ' 位作者</div>' +
+      '</div>' +
+      '<button class="masthead-visual rise" style="animation-delay:.14s" onclick="goFlip()" title="翻页模式" aria-label="打开翻页模式">' +
+        '<img src="flip-icon.png" alt="翻页模式">' +
+      '</button>' +
+    '</header>' +
+    '<h2 class="page-title rise" style="animation-delay:.26s">档期</h2>' +
+    '<p class="page-sub rise" style="animation-delay:.3s">按日期归档的作品，点击展开查看</p>' +
+    periods;
+}
+
+function filteredWorks() {
+  return WORKS.filter(w => {
+    if (state.author && w.author !== state.author) return false;
+    if (state.date && w.date !== state.date) return false;
+    if (state.tags.size && !w.tags.some(t => state.tags.has(t))) return false;
+    if (state.keywords) {
+      const q = state.keywords.toLowerCase();
+      if ((w.title + ' ' + w.author + ' ' + w.text).toLowerCase().indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function renderCatalog(animate) {
+  const list = filteredWorks();
+  const chipsFor = (values, current, fn) =>
+    '<button class="chip ' + (!current ? 'active' : '') + '" onclick="' + fn + '(\'\')">全部</button>' +
+    values.map(v => '<button class="chip ' + (current === v ? 'active' : '') + '" onclick="' + fn + '(\'' + v + '\')">' + v + '</button>').join('');
+
+  const items = list.length
+    ? list.map((w, i) => cardHTML(w, 'rise', animate ? (0.06 + i * 0.035).toFixed(2) + 's' : '')).join('')
+    : '<p class="period-empty">没有匹配的作品</p>';
+
+  $('#catalog-body').innerHTML =
+    '<div class="filters">' +
+      '<div class="filter-row"><span class="filter-label">作者</span><div class="chips">' + chipsFor(authors, state.author, 'toggleAuthor') + '</div></div>' +
+      '<div class="filter-row"><span class="filter-label">时间</span><div class="chips">' + chipsFor(dates, state.date, 'toggleDate') + '</div></div>' +
+      '<div class="filter-row"><span class="filter-label">风格</span><div class="chips">' +
+        '<button class="chip" onclick="clearTags()">全部</button>' +
+        allTags.map(t => '<button class="chip ' + (state.tags.has(t) ? 'active' : '') + '" onclick="toggleTag(\'' + t + '\')">' + t + '</button>').join('') +
+      '</div></div>' +
+    '</div>' +
+    '<div class="result-count">共 ' + list.length + ' 篇</div>' +
+    '<div class="catalog-list">' + items + '</div>';
+}
+
+function toggleAuthor(a) { state.author = a || null; renderCatalog(false); }
+function toggleDate(d) { state.date = d || null; renderCatalog(false); }
+function toggleTag(t) { state.tags.has(t) ? state.tags.delete(t) : state.tags.add(t); renderCatalog(false); }
+function clearTags() { state.tags.clear(); renderCatalog(false); }
+function onSearch(v) { state.keywords = v.trim(); renderCatalog(false); }
+
+const OPENERS = '（("“\'《『「【〔[';
+function openWork(title) {
+  const idx = WORKS.findIndex(x => x.title === title);
+  const w = WORKS[idx];
+  if (!w) return;
+  if (state.view !== 'reading') state.returnTab = state.view;
+
+  const prev = WORKS[idx - 1];
+  const next = WORKS[idx + 1];
+  const len = w.text.replace(/\s+/g, '').length;
+  const mins = Math.max(1, Math.round(len / 400));
+  const first = w.text.charAt(0);
+  const noDrop = OPENERS.indexOf(first) !== -1;
+
+  const nav =
+    (prev ? '<div class="read-nav-side"><button class="read-nav-btn" onclick="openWork(\'' + prev.title + '\')">' +
+      '<span class="read-nav-arrow">← 上一篇</span>' +
+      '<span class="read-nav-label">' + prev.author + '</span>' +
+      '<span class="read-nav-title">' + prev.title + '</span></button></div>'
+     : '<div class="read-nav-side"></div>') +
+    (next ? '<div class="read-nav-side next"><button class="read-nav-btn" onclick="openWork(\'' + next.title + '\')">' +
+      '<span class="read-nav-arrow">下一篇 →</span>' +
+      '<span class="read-nav-label">' + next.author + '</span>' +
+      '<span class="read-nav-title">' + next.title + '</span></button></div>'
+     : '<div class="read-nav-side next"></div>');
+
+  $('#view-reading').innerHTML =
+    '<div class="reading">' +
+      '<button class="back" onclick="backFromReading()">← 返回</button>' +
+      '<div class="reader-tools">' +
+        '<div class="tool-group"><span class="tool-group-label">字号</span>' +
+          '<button class="tool-btn" onclick="changeSize(-1)">A−</button>' +
+          '<span class="size-label">' + readSize + '</span>' +
+          '<button class="tool-btn" onclick="changeSize(1)">A+</button></div>' +
+        '<div class="tool-group"><span class="tool-group-label">字体</span>' +
+          '<button class="tool-btn" data-serif="1" onclick="setSerif(true)">衬线</button>' +
+          '<button class="tool-btn" data-serif="0" onclick="setSerif(false)">无衬线</button></div>' +
+        '<div class="tool-group"><span class="tool-group-label">主题</span>' +
+          '<button class="tool-btn" data-theme-btn="light" onclick="setTheme(\'light\')">亮</button>' +
+          '<button class="tool-btn" data-theme-btn="paper" onclick="setTheme(\'paper\')">纸</button>' +
+          '<button class="tool-btn" data-theme-btn="dark" onclick="setTheme(\'dark\')">暗</button></div>' +
+      '</div>' +
+      '<div class="reading-head">' +
+        '<h1>' + w.title + '</h1>' +
+        '<div class="byline"><span>' + w.author + '</span><span class="dot">·</span><span>' + w.date + '</span>' + tagChips(w.tags) + '</div>' +
+        '<div class="reading-meta">' + len + ' 字 · 约 ' + mins + ' 分钟</div>' +
+      '</div>' +
+      '<article class="reading"><div class="body' + (noDrop ? ' no-drop' : '') + '">' + w.text + '</div></article>' +
+      '<div class="read-nav">' + nav + '</div>' +
+    '</div>';
+
+  state.view = 'reading';
+  setTab('reading');
+  show('reading');
+  window.scrollTo(0, 0);
+  refreshTools();
+}
+
+function backFromReading() {
+  if (state.returnTab === 'catalog') { goCatalog(); } else { goHome(); }
+}
+
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('writr-theme', t); } catch (e) {}
+  refreshTools();
+}
+
+function applySystemTheme() {
+  let t = null;
+  try { t = localStorage.getItem('writr-theme'); } catch (e) {}
+  if (!t || t === 'system') {
+    const preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', preferDark ? 'dark' : 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', t);
+  }
+}
+
+function setSerif(v) {
+  document.body.classList.toggle('serif', v);
+  try { localStorage.setItem('writr-serif', v ? '1' : '0'); } catch (e) {}
+  refreshTools();
+}
+
+function changeSize(d) {
+  readSize = Math.min(22, Math.max(14, readSize + d));
+  document.documentElement.style.setProperty('--read-size', readSize + 'px');
+  try { localStorage.setItem('writr-read-size', String(readSize)); } catch (e) {}
+  refreshTools();
+}
+
+function refreshTools() {
+  const serif = document.body.classList.contains('serif');
+  document.querySelectorAll('[data-serif]').forEach(b => {
+    b.classList.toggle('active', (b.dataset.serif === '1') === serif);
+  });
+  const theme = document.documentElement.getAttribute('data-theme');
+  document.querySelectorAll('[data-theme-btn]').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeBtn === theme);
+  });
+  document.querySelectorAll('.size-label').forEach(l => { l.textContent = readSize; });
+}
+
+const pad2 = x => String(x).padStart(2, '0');
+
+function renderFlipView() {
+  const container = document.getElementById('view-flip');
+  container.innerHTML =
+    '<div class="flip-wrap">' +
+      '<div class="flipbook" id="flipbook"></div>' +
+      '<div class="flip-nav">' +
+        '<button class="flip-btn" id="flip-prev" onclick="flipGo(-1)">← 上一页</button>' +
+        '<div class="flip-indicator" id="flip-indicator"></div>' +
+        '<button class="flip-btn" id="flip-next" onclick="flipGo(1)">下一页 →</button>' +
+      '</div>' +
+      '<p class="flip-hint">左右滑动、按 ← → 或点按钮翻页</p>' +
+    '</div>';
+
+  const blocks = [];
+  flipOrder.forEach(idx => {
+    const w = WORKS[idx];
+    if (!w) return;
+    blocks.push({ t: 'h', title: w.title, html: '<h2 class="bp-title">' + w.title + '</h2>' });
+    blocks.push({ t: 'b', title: w.title, html: '<div class="bp-byline">' + w.author + ' · ' + w.date + '</div>' });
+    (w.text || '').split(/\n+/).forEach(p => {
+      const t = p.trim();
+      if (t) blocks.push({ t: 'p', title: w.title, html: '<p class="bp-para">' + t + '</p>' });
+    });
+  });
+
+  const pages = paginate(blocks);
+  const n = pages.length;
+  document.getElementById('flipbook').innerHTML = pages.map((pg, i) =>
+    '<div class="bp-page" style="z-index:' + (n - i) + '">' + pg.html +
+    '<div class="bp-foot"><span class="bp-foot-title">' + pg.title + '</span><span class="bp-page-num">' + pad2(i + 1) + '</span></div></div>'
+  ).join('');
+
+  flipIndex = 0;
+  attachFlipGestures();
+  updateFlipUI();
+}
+
+function paginate(blocks) {
+  const book = document.getElementById('flipbook');
+  const W = book.clientWidth, H = book.clientHeight;
+  const probe = document.createElement('div');
+  probe.className = 'bp-page';
+  probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:' + W + 'px;height:' + H + 'px;';
+  document.body.appendChild(probe);
+
+  const fits = html => { probe.innerHTML = html; return probe.scrollHeight <= probe.clientHeight + 1; };
+  const paraText = h => h.replace(/^<p[^>]*>/, '').replace(/<\/p>$/, '');
+  const fitLen = (base, text) => {
+    let lo = 0, hi = text.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (fits(base + '<p class="bp-para">' + text.slice(0, mid) + '</p>')) lo = mid; else hi = mid - 1;
+    }
+    return lo;
+  };
+
+  const pages = [];
+  let cur = [];
+  let curTitle = '';
+  let i = 0;
+  while (i < blocks.length) {
+    const b = blocks[i];
+    if (b.t === 'h' && cur.length) { pages.push({ html: cur.join(''), title: curTitle }); cur = []; }
+    if (fits(cur.join('') + b.html)) {
+      cur.push(b.html); if (b.title) curTitle = b.title; i++;
+      continue;
+    }
+    if (b.t === 'p') {
+      const text = paraText(b.html);
+      const n = fitLen(cur.join(''), text);
+      if (n > 0) {
+        cur.push('<p class="bp-para">' + text.slice(0, n) + '</p>');
+        pages.push({ html: cur.join(''), title: curTitle || b.title });
+        cur = [];
+        const rest = text.slice(n);
+        if (rest) blocks[i] = { t: 'p', title: b.title, html: '<p class="bp-para">' + rest + '</p>' };
+        else i++;
+        continue;
+      }
+    }
+    if (cur.length) { pages.push({ html: cur.join(''), title: curTitle }); cur = []; continue; }
+    if (b.t === 'p') {
+      const text = paraText(b.html);
+      const n = Math.max(1, fitLen('', text));
+      cur.push('<p class="bp-para">' + text.slice(0, n) + '</p>');
+      pages.push({ html: cur.join(''), title: b.title });
+      cur = [];
+      const rest = text.slice(n);
+      if (rest) blocks[i] = { t: 'p', title: b.title, html: '<p class="bp-para">' + rest + '</p>' };
+      else i++;
+      continue;
+    }
+    cur.push(b.html); if (b.title) curTitle = b.title; i++;
+  }
+  if (cur.length) pages.push({ html: cur.join(''), title: curTitle });
+  probe.remove();
+  return pages;
+}
+
+function flipGo(dir) {
+  const pages = document.querySelectorAll('#flipbook .bp-page');
+  const n = pages.length;
+  if (!n) return;
+  if (dir > 0 && flipIndex < n - 1) {
+    pages[flipIndex].classList.add('flipped');
+    flipIndex++;
+  } else if (dir < 0 && flipIndex > 0) {
+    flipIndex--;
+    pages[flipIndex].classList.remove('flipped');
+  } else {
+    return;
+  }
+  updateFlipUI();
+}
+
+function updateFlipUI() {
+  const n = document.querySelectorAll('#flipbook .bp-page').length;
+  document.getElementById('flip-indicator').textContent = (flipIndex + 1) + ' / ' + n;
+  document.getElementById('flip-prev').disabled = flipIndex === 0;
+  document.getElementById('flip-next').disabled = flipIndex === n - 1;
+}
+
+let pStartX = 0, pStartY = 0, pActive = false;
+function attachFlipGestures() {
+  const book = document.getElementById('flipbook');
+  if (!book || !('PointerEvent' in window)) return;
+  book.addEventListener('pointerdown', e => {
+    pStartX = e.clientX; pStartY = e.clientY; pActive = true;
+  });
+  book.addEventListener('pointerup', e => {
+    if (!pActive) return;
+    pActive = false;
+    const dx = e.clientX - pStartX;
+    const dy = e.clientY - pStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      flipGo(dx < 0 ? 1 : -1);
+    } else if (Math.abs(dx) <= 8 && Math.abs(dy) <= 8) {
+      const rect = book.getBoundingClientRect();
+      const rel = (pStartX - rect.left) / rect.width;
+      flipGo(rel < 0.32 ? -1 : 1);
+    }
+  });
+  book.addEventListener('pointercancel', () => { pActive = false; });
+}
+
+let scrollTimer;
+window.addEventListener('scroll', () => {
+  if (state.view !== 'reading') { $('#progress').style.width = '0'; return; }
+  cancelAnimationFrame(scrollTimer);
+  scrollTimer = requestAnimationFrame(() => {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - window.innerHeight;
+    $('#progress').style.width = max > 0 ? (window.scrollY / max * 100) + '%' : '0';
+  });
+});
+
+function loadWorks() {
+  authors = [...new Set(WORKS.map(w => w.author))];
+  allTags = [...new Set(WORKS.flatMap(w => w.tags))];
+  flipOrder = WORKS.map((_, i) => i);
+  for (let i = flipOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [flipOrder[i], flipOrder[j]] = [flipOrder[j], flipOrder[i]];
+  }
+  renderHome();
+}
+
+function init() {
+  applySystemTheme();
+  try {
+    if (localStorage.getItem('writr-serif') === '1') document.body.classList.add('serif');
+    const s = parseInt(localStorage.getItem('writr-read-size'), 10);
+    if (s >= 14 && s <= 22) { readSize = s; document.documentElement.style.setProperty('--read-size', readSize + 'px'); }
+  } catch (e) {}
+
+  window.addEventListener('keydown', e => {
+    if (state.view !== 'flip') return;
+    if (e.key === 'ArrowRight') { flipGo(1); }
+    else if (e.key === 'ArrowLeft') { flipGo(-1); }
+  });
+
+  loadWorks();
+
+  const tagline = document.querySelector('.footer-tagline');
+  if (tagline && 'IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      entries.forEach(en => { if (en.isIntersecting) { tagline.classList.add('in'); } });
+    }, { threshold: 0.4 }).observe(tagline);
+  }
+}
+
+init();
+</script>
+
+<iframe class="html2canvas-container" width="873" height="818" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="873" height="818" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="873" height="818" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe><iframe class="html2canvas-container" width="873" height="818" scrolling="no" data-html2canvas-ignore="true" style="visibility: hidden; position: fixed; left: -10000px; top: 0px; border: 0px;"></iframe></body></html>
