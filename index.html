@@ -334,17 +334,28 @@ let authors = [];
 let allTags = [];
 
 const PERIODS = [
-  { date: "2026/10/21", note: "本期六篇入档，从梦境边缘到脑内高潮。" },
+  { date: "2026/10/21", note: "本期七篇入档，从梦境边缘到脑内高潮，与无人知晓。" },
   { date: "2026/10/14", note: "本期四篇入档 · 信念、一天、谎言生活、秋。" },
   { date: "2026/10/07", note: "本期四篇入档 · 中秋家宴与一季颜色。" },
-  { date: "2026/09/30", note: "创刊号 · 童年之水、故乡之月，与爱的牺牲。" }
+  { date: "2026/09/30", note: "创刊号 · 童年之水、故乡之月、爱的牺牲，与黑、白、红、绿。" }
 ];
 const dates = PERIODS.map(p => p.date);
 
 const TAG_COLORS = {
   '志怪': '#5B6ABF', '意识流': '#7A6FA8', '非虚构': '#2F8F83', '都市': '#4A78A8',
-  '荒诞': '#C08A2D', '幽默': '#D0802F', '哲思': '#6B7280', '诗性': '#B0567A'
+  '荒诞': '#C08A2D', '幽默': '#D0802F', '哲思': '#6B7280', '诗性': '#B0567A',
+  '成长': '#2F8F5E', '乡愁': '#B07A4A', '情感': '#C8547A', '自我': '#7A6FA8',
+  '温暖': '#D08A3F', '怅惘': '#6B82B0', '诡谲': '#8A5DB0', '戏谑': '#C08A2D',
+  '市井': '#5B7A8F', '乡土': '#7A8F4A', '自然': '#3F9A6D', '人文': '#8F6B4A', '日常': '#8A8A8A'
 };
+
+const TAG_CATEGORIES = [
+  { label: '体裁', tags: ['非虚构'] },
+  { label: '风格', tags: ['志怪', '意识流', '荒诞', '幽默', '哲思', '诗性', '都市'] },
+  { label: '主题', tags: ['成长', '乡愁', '情感', '自我'] },
+  { label: '情绪', tags: ['温暖', '怅惘', '诡谲', '戏谑'] },
+  { label: '场景', tags: ['市井', '乡土', '自然', '人文', '日常'] }
+];
 
 const state = { view: 'home', returnTab: 'home', author: null, date: null, keywords: '', tags: new Set() };
 let readSize = 16;
@@ -464,10 +475,12 @@ function renderCatalog(animate) {
     '<div class="filters">' +
       '<div class="filter-row"><span class="filter-label">作者</span><div class="chips">' + chipsFor(authors, state.author, 'toggleAuthor') + '</div></div>' +
       '<div class="filter-row"><span class="filter-label">时间</span><div class="chips">' + chipsFor(dates, state.date, 'toggleDate') + '</div></div>' +
-      '<div class="filter-row"><span class="filter-label">风格</span><div class="chips">' +
-        '<button class="chip" onclick="clearTags()">全部</button>' +
-        allTags.map(t => '<button class="chip ' + (state.tags.has(t) ? 'active' : '') + '" onclick="toggleTag(\'' + t + '\')">' + t + '</button>').join('') +
-      '</div></div>' +
+      TAG_CATEGORIES.map(cat =>
+        '<div class="filter-row"><span class="filter-label">' + cat.label + '</span><div class="chips">' +
+        (cat.label === TAG_CATEGORIES[0].label ? '<button class="chip" onclick="clearTags()">清除</button>' : '') +
+        cat.tags.map(t => '<button class="chip ' + (state.tags.has(t) ? 'active' : '') + '" onclick="toggleTag(\'' + t + '\')">' + t + '</button>').join('') +
+        '</div></div>'
+      ).join('') +
     '</div>' +
     '<div class="result-count">共 ' + list.length + ' 篇</div>' +
     '<div class="catalog-list">' + items + '</div>';
