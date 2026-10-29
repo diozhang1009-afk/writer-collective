@@ -764,6 +764,7 @@ window.addEventListener('scroll', () => {
 });
 
 function loadWorks() {
+  WORKS.sort((a, b) => b.date.localeCompare(a.date));
   authors = [...new Set(WORKS.map(w => w.author))];
   allTags = [...new Set(WORKS.flatMap(w => w.tags))];
   flipOrder = WORKS.map((_, i) => i);
