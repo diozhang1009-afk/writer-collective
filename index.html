@@ -337,8 +337,9 @@ let authors = [];
 let allTags = [];
 
 const PERIODS = [
+  { date: "2026/10/28", note: "本期八篇入档 · 四篇同题「仰望悬崖」。" },
   { date: "2026/10/21", note: "本期七篇入档，从梦境边缘到脑内高潮，与无人知晓。" },
-  { date: "2026/10/14", note: "本期四篇入档 · 信念、一天、谎言生活、秋。" },
+  { date: "2026/10/14", note: "本期五篇入档 · 信念、一天、谎言生活、秋，与游戏无罪论。" },
   { date: "2026/10/07", note: "本期四篇入档 · 中秋家宴与一季颜色。" },
   { date: "2026/09/30", note: "创刊号 · 童年之水、故乡之月、爱的牺牲，与黑、白、红、绿。" }
 ];
@@ -406,7 +407,7 @@ function tagChips(tags) {
 function cardHTML(w, cls, delay) {
   const len = w.text.replace(/\s+/g, '').length;
   const d = delay ? ' style="animation-delay:' + delay + '"' : '';
-  return '<div class="catalog-item ' + cls + '"' + d + ' onclick="openWork(\'' + w.title + '\')">' +
+  return '<div class="catalog-item ' + cls + '"' + d + ' onclick="openWork(' + WORKS.indexOf(w) + ')">' +
     '<div>' +
       '<div class="work-title">' + w.title + '</div>' +
       '<div class="work-meta"><span class="meta-author">' + w.author + '</span><span class="meta-sep"></span><span class="meta-date">' + w.date + '</span><span class="meta-sep"></span><span class="meta-words">' + len + ' 字</span></div>' +
@@ -500,8 +501,8 @@ function onSearch(v) { state.keywords = v.trim(); catalogLimit = CATALOG_INIT; r
 function growCatalog() { catalogLimit += CATALOG_STEP; renderCatalog(false); }
 
 const OPENERS = '（("“\'《『「【〔[';
-function openWork(title) {
-  const idx = WORKS.findIndex(x => x.title === title);
+function openWork(i) {
+  const idx = typeof i === 'number' ? i : WORKS.findIndex(x => x.title === i);
   const w = WORKS[idx];
   if (!w) return;
   if (state.view !== 'reading') state.returnTab = state.view;
@@ -514,12 +515,12 @@ function openWork(title) {
   const noDrop = OPENERS.indexOf(first) !== -1;
 
   const nav =
-    (prev ? '<div class="read-nav-side"><button class="read-nav-btn" onclick="openWork(\'' + prev.title + '\')">' +
+    (prev ? '<div class="read-nav-side"><button class="read-nav-btn" onclick="openWork(' + (idx - 1) + ')">' +
       '<span class="read-nav-arrow">← 上一篇</span>' +
       '<span class="read-nav-label">' + prev.author + '</span>' +
       '<span class="read-nav-title">' + prev.title + '</span></button></div>'
      : '<div class="read-nav-side"></div>') +
-    (next ? '<div class="read-nav-side next"><button class="read-nav-btn" onclick="openWork(\'' + next.title + '\')">' +
+    (next ? '<div class="read-nav-side next"><button class="read-nav-btn" onclick="openWork(' + (idx + 1) + ')">' +
       '<span class="read-nav-arrow">下一篇 →</span>' +
       '<span class="read-nav-label">' + next.author + '</span>' +
       '<span class="read-nav-title">' + next.title + '</span></button></div>'
